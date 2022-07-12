@@ -26,8 +26,8 @@ def home():
 
     if request.method == 'POST':
         data = request.form.get('test_input')
-        print(data)
-        return nre(data)
+        config = nre(data)
+        return render_template('home.html', result=config)
 
 
 @app.route('/predict')
