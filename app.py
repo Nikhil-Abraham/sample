@@ -1,6 +1,10 @@
 from flask import Flask, request, render_template
 from requests_html import HTMLSession
 import requests
+import spacy
+from spacy import displacy
+from bs4 import BeautifulSoup
+
 session = HTMLSession()
 
 
@@ -9,14 +13,41 @@ app = Flask(__name__)
 
 def nre(text):
 
+    res = []
+
     if 'https://www' not in text:
         data = text
     else:
-        x = session.get(text)
-        print(x.text)
-        data = x.text
+        try:
+            html_content = session.get(text).text
+            soup = BeautifulSoup(html_content, "lxml")
+            data=soup.body.text
+        except:
+            data = "ERROR"
+            res.append('ERROR')
 
-    return data
+    NER = spacy.load("en_core_web_sm")
+
+    text1= NER(data)
+
+
+
+    for word in text1.ents:
+        print(word.text,word.label_)
+        res.append(word.text)
+        res.append(word.label_)
+
+    spacy.explain("ORG")
+    spacy.explain("GPE")
+    spacy.explain("PRODUCT")
+    spacy.explain("LOC")
+    spacy.explain("DATE")
+    spacy.explain("ORDINAL")
+    spacy.explain("MONEY")
+
+    res.append(str(text1))
+
+    return res
 
 
 @app.route('/', methods=['GET', 'POST'])
